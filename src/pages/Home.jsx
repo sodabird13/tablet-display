@@ -27,14 +27,6 @@ export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Redirect only phones (not tablets) to calendar
-  useEffect(() => {
-    const isPhone = window.innerWidth < 640; // Only redirect devices smaller than 640px (phones)
-    if (isPhone) {
-      navigate(createPageUrl('Calendar'));
-    }
-  }, [navigate]);
-
   const { data: settings } = useQuery({
     queryKey: ['settings'],
     queryFn: fetchSettings,

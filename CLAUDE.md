@@ -72,3 +72,32 @@ Tablet Display is a Vite-powered React SPA that renders a wall-display style das
 - System packages: `git`, `curl`, `build-essential`, `python3`, (`libxi-dev`, `libxtst-dev` if building native deps).
 - For production, build once (`npm run build`) and serve `dist/` via a lightweight static server (
   `npm run preview`, `serve -s dist`, Caddy, etc.). Weather/price polling runs every 15–30 minutes; keep device time synced. Public APIs have modest rate limits, so consider caching if you deploy multiple displays.
+
+## 7) Deployment to Pi
+
+### Pi Connection Details
+- **Pi IP**: `192.168.1.84`
+- **Username**: `jleavitt13`
+- **Deploy path**: `/home/jleavitt13/tablet-display/dist/`
+- **App URL**: `http://192.168.1.84:3001`
+- **SSH key**: `~/.ssh/id_ed25519` (already configured)
+
+### Deploy steps
+```bash
+# 1. Build locally
+npm run build
+
+# 2. Deploy to Pi (no password needed - uses SSH key)
+rsync -avz --delete dist/ jleavitt13@192.168.1.84:/home/jleavitt13/tablet-display/dist/
+```
+
+### SSH access
+```bash
+ssh jleavitt13@192.168.1.84
+```
+
+### Notes
+- The Pi serves the static `dist/` folder on port 3001
+- No rebuild needed on the Pi - just rsync the pre-built dist folder
+- Changes take effect immediately after rsync (no server restart needed for static files)
+- SSH key auth is configured - no password prompts for deploy or SSH
