@@ -101,3 +101,25 @@ ssh jleavitt13@192.168.1.84
 - No rebuild needed on the Pi - just rsync the pre-built dist folder
 - Changes take effect immediately after rsync (no server restart needed for static files)
 - SSH key auth is configured - no password prompts for deploy or SSH
+
+### Quick deploy command (copy-paste ready)
+```bash
+cd /Users/joshleavitt/projects/tablet-display && npm run build && rsync -avz --delete dist/ jleavitt13@192.168.1.84:/home/jleavitt13/tablet-display/dist/
+```
+
+## 8) Google Calendar Integration
+
+### Service Account Credentials
+The app uses Google Calendar API with service account authentication. Credentials are stored in `.env.local` (not committed to git):
+
+```
+VITE_GOOGLE_SERVICE_ACCOUNT_EMAIL=tablet-display-calendar@calendar-474821.iam.gserviceaccount.com
+VITE_GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+**Important**: These are baked into the build at compile time (VITE_ prefix). The `.env.local` file must exist locally before running `npm run build`.
+
+### Calendar Setup
+- Calendar ID configured in Supabase settings table: `811madrona@gmail.com`
+- The calendar must be shared with the service account email for access
+- Events refresh every 5 minutes automatically, or manually via refresh button on `/calendar` page
