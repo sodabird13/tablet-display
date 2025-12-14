@@ -1,10 +1,17 @@
 import { supabase } from './supabaseClient'
+import { fetchGoogleCalendarEvents } from './googleCalendar'
+import { addDays, startOfDay } from 'date-fns'
 
 const SETTINGS_TABLE = 'settings'
 const EVENTS_TABLE = 'calendar_events'
 const BACKGROUNDS_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'backgrounds'
 
 const cryptoRef = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined
+
+// Cache for settings to avoid repeated fetches
+let settingsCache = null
+let settingsCacheTime = 0
+const SETTINGS_CACHE_TTL = 30000 // 30 seconds
 
 const normalizeEvent = (event) => {
   if (!event) return event
@@ -44,18 +51,74 @@ export async function saveSettings(payload) {
   if (response.error) {
     throw response.error
   }
+  
+  // Clear settings cache so the new settings are used immediately
+  clearSettingsCache()
+  
   return response.data
 }
 
 export async function listCalendarEvents() {
+  // Fetch local events from Supabase
   const response = await supabase
     .from(EVENTS_TABLE)
     .select('*')
     .order('specific_date', { ascending: true, nullsFirst: false })
     .order('title', { ascending: true })
 
-  const events = ensureData(response) ?? []
-  return events.map(normalizeEvent)
+  const localEvents = (ensureData(response) ?? []).map(normalizeEvent).map(e => ({
+    ...e,
+    source: 'local'
+  }))
+
+  // Try to fetch Google Calendar events if configured
+  let googleEvents = []
+  try {
+    const settings = await getCachedSettings()
+    
+    if (settings?.google_calendar_id) {
+      const today = startOfDay(new Date())
+      const timeMin = today
+      const timeMax = addDays(today, 30) // Fetch 30 days of events
+      
+      googleEvents = await fetchGoogleCalendarEvents(
+        settings.google_calendar_id,
+        settings.google_calendar_api_key,
+        timeMin,
+        timeMax
+      )
+    }
+  } catch (error) {
+    console.error('Failed to fetch Google Calendar events:', error)
+  }
+
+  // Merge and return all events
+  return [...localEvents, ...googleEvents]
+}
+
+/**
+ * Get settings with caching to avoid repeated fetches
+ */
+async function getCachedSettings() {
+  const now = Date.now()
+  if (settingsCache && (now - settingsCacheTime) < SETTINGS_CACHE_TTL) {
+    return settingsCache
+  }
+  
+  const response = await supabase.from(SETTINGS_TABLE).select('*').limit(1).maybeSingle()
+  if (!response.error) {
+    settingsCache = response.data
+    settingsCacheTime = now
+  }
+  return response.data
+}
+
+/**
+ * Clear the settings cache (call when settings are updated)
+ */
+export function clearSettingsCache() {
+  settingsCache = null
+  settingsCacheTime = 0
 }
 
 export async function createCalendarEvent(eventData) {
