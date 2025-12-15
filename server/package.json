@@ -1,0 +1,13 @@
+{
+  "name": "tablet-display-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "jose": "^5.9.6"
+  }
+}
+

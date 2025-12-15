@@ -104,7 +104,30 @@ ssh jleavitt13@192.168.1.84
 
 ### Quick deploy command (copy-paste ready)
 ```bash
-cd /Users/joshleavitt/projects/tablet-display && npm run build && rsync -avz --delete dist/ jleavitt13@192.168.1.84:/home/jleavitt13/tablet-display/dist/
+cd /Users/joshleavitt/projects/tablet-display && npm run build && \
+rsync -avz --delete dist/ jleavitt13@192.168.1.84:/home/jleavitt13/tablet-display/dist/ && \
+rsync -avz server/index.js server/package.json jleavitt13@192.168.1.84:/home/jleavitt13/tablet-display/server/ && \
+ssh jleavitt13@192.168.1.84 "sudo systemctl restart tablet-display.service"
+```
+
+### Server Architecture
+The Pi runs an Express server (`server/index.js`) that:
+1. Serves the static `dist/` folder
+2. Provides `/api/google-calendar-events` endpoint for server-side Google Calendar fetching
+3. Handles JWT signing with the service account credentials (required because tablet browsers may not support Web Crypto API)
+
+The server is managed by systemd: `tablet-display.service`
+
+### Server management on Pi
+```bash
+# Check status
+ssh jleavitt13@192.168.1.84 "sudo systemctl status tablet-display.service"
+
+# View logs
+ssh jleavitt13@192.168.1.84 "sudo journalctl -u tablet-display.service -f"
+
+# Restart
+ssh jleavitt13@192.168.1.84 "sudo systemctl restart tablet-display.service"
 ```
 
 ## 8) Google Calendar Integration

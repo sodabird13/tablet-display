@@ -2,6 +2,24 @@ import { supabase } from './supabaseClient'
 import { fetchGoogleCalendarEvents } from './googleCalendar'
 import { addDays, startOfDay } from 'date-fns'
 
+/**
+ * Fetch Google Calendar events from the server-side API
+ * This is used on the Pi where the server handles the Google API auth
+ */
+async function fetchGoogleCalendarFromServer() {
+  try {
+    const response = await fetch('/api/google-calendar-events')
+    if (!response.ok) {
+      return []
+    }
+    const data = await response.json()
+    return data.events || []
+  } catch (error) {
+    // Server API not available (likely running locally without the server)
+    return []
+  }
+}
+
 const SETTINGS_TABLE = 'settings'
 const EVENTS_TABLE = 'calendar_events'
 const BACKGROUNDS_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'backgrounds'
@@ -71,25 +89,32 @@ export async function listCalendarEvents() {
     source: 'local'
   }))
 
-  // Try to fetch Google Calendar events if configured
+  // Try to fetch Google Calendar events
+  // First try the server-side API (works on Pi), then fall back to client-side
   let googleEvents = []
   try {
-    const settings = await getCachedSettings()
+    // Try server-side API first (for Pi deployment)
+    googleEvents = await fetchGoogleCalendarFromServer()
     
-    if (settings?.google_calendar_id) {
-      const today = startOfDay(new Date())
-      const timeMin = today
-      const timeMax = addDays(today, 30) // Fetch 30 days of events
+    // If server API didn't return events, try client-side (for local dev)
+    if (googleEvents.length === 0) {
+      const settings = await getCachedSettings()
       
-      googleEvents = await fetchGoogleCalendarEvents(
-        settings.google_calendar_id,
-        settings.google_calendar_api_key,
-        timeMin,
-        timeMax
-      )
+      if (settings?.google_calendar_id) {
+        const today = startOfDay(new Date())
+        const timeMin = today
+        const timeMax = addDays(today, 30)
+        
+        googleEvents = await fetchGoogleCalendarEvents(
+          settings.google_calendar_id,
+          settings.google_calendar_api_key,
+          timeMin,
+          timeMax
+        )
+      }
     }
   } catch (error) {
-    console.error('Failed to fetch Google Calendar events:', error)
+    console.error('[Calendar] Failed to fetch Google Calendar events:', error)
   }
 
   // Merge and return all events
