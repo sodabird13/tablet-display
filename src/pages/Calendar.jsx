@@ -496,6 +496,10 @@ export default function Calendar() {
                       const leftPercent = column * widthPercent;
                       const gap = 2; // Gap in pixels between overlapping events
 
+                      // Determine if this is a short event (30 min or less)
+                      const isShortEvent = height <= 44;
+                      const minHeight = isShortEvent ? 42 : 30;
+
                       return (
                         <div
                           key={event.id}
@@ -505,7 +509,7 @@ export default function Calendar() {
                             top: `${topPosition}px`,
                             left: `calc(${leftPercent}% + ${gap}px)`,
                             width: `calc(${widthPercent}% - ${gap * 2}px)`,
-                            height: `${Math.max(height - 4, 30)}px`,
+                            height: `${Math.max(height - 4, minHeight)}px`,
                             zIndex: 10 + column,
                           }}
                           title={event.source === 'google' ? 'Click to open in Google Calendar' : event.title}
@@ -515,7 +519,7 @@ export default function Calendar() {
                               <GoogleIcon className="w-full h-full" />
                             </div>
                           )}
-                          <div className={`font-medium break-words line-clamp-2 ${event.source === 'google' ? 'pr-3' : ''}`}>
+                          <div className={`font-medium break-words ${isShortEvent ? 'line-clamp-1' : 'line-clamp-2'} ${event.source === 'google' ? 'pr-3' : ''}`}>
                             {event.title}
                           </div>
                           <div className="text-[0.6rem] md:text-[0.65rem] opacity-90 mt-0.5">
