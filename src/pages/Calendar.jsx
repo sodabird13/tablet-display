@@ -352,7 +352,51 @@ export default function Calendar() {
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
       <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-4 md:mb-6 gap-2 md:gap-4">
-          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+          {/* Left - Icon buttons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="h-8 w-8 md:h-10 md:w-10"
+              title="Refresh calendar"
+            >
+              <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(createPageUrl('Home'))}
+              className="h-8 w-8 md:h-10 md:w-10"
+              title="Return to tablet display"
+            >
+              <Tablet className="w-4 h-4 md:w-5 md:h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettingsModal(true)}
+              className="h-8 w-8 md:h-10 md:w-10"
+            >
+              <SettingsIcon className="w-4 h-4 md:w-5 md:h-5" />
+            </Button>
+          </div>
+          
+          {/* Center - View selector */}
+          <Select value={viewMode} onValueChange={setViewMode}>
+            <SelectTrigger className="w-28 h-8 text-sm md:w-40 md:h-10 md:text-base">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1day">1-Day View</SelectItem>
+              <SelectItem value="3day">3-Day View</SelectItem>
+              <SelectItem value="week">Week View</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Right - Title and navigation */}
+          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1 justify-end">
             <h1 className="text-xl md:text-3xl font-light text-gray-900 truncate">
               {isMobile ? 'Calendar' : calendarTitle}
             </h1>
@@ -362,50 +406,6 @@ export default function Calendar() {
               </Button>
               <Button variant="ghost" size="icon" onClick={handleNext} className="h-8 w-8 md:h-10 md:w-10">
                 <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Center - Tablet Display button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(createPageUrl('Home'))}
-            className="h-10 w-10 md:h-12 md:w-12"
-            title="Return to tablet display"
-          >
-            <Tablet className="w-5 h-5 md:w-6 md:h-6" />
-          </Button>
-          
-          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            <Select value={viewMode} onValueChange={setViewMode}>
-              <SelectTrigger className="w-28 h-8 text-sm md:w-40 md:h-10 md:text-base">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1day">1-Day View</SelectItem>
-                <SelectItem value="3day">3-Day View</SelectItem>
-                <SelectItem value="week">Week View</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="h-8 w-8 md:h-10 md:w-10"
-                title="Refresh calendar"
-              >
-                <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSettingsModal(true)}
-                className="hidden md:flex h-8 w-8 md:h-10 md:w-10"
-              >
-                <SettingsIcon className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
           </div>
