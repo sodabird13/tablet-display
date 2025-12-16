@@ -11,7 +11,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, addDays, startOfWeek, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Plus, Settings as SettingsIcon, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Plus, Settings as SettingsIcon, ChevronLeft, ChevronRight, RefreshCw, Tablet } from 'lucide-react';
 
 // Google "G" icon component (white/greyscale version - very faint)
 const GoogleIcon = ({ className }) => (
@@ -350,12 +350,6 @@ export default function Calendar() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
-      <button
-        onClick={() => navigate(createPageUrl('Home'))}
-        className="fixed bottom-0 left-0 w-16 h-16 opacity-0 hover:opacity-10 bg-gray-200 transition-opacity z-50"
-        aria-label="Return to home"
-      />
-
       <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-4 md:mb-6 gap-2 md:gap-4">
           <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
@@ -371,6 +365,18 @@ export default function Calendar() {
               </Button>
             </div>
           </div>
+          
+          {/* Center - Tablet Display button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(createPageUrl('Home'))}
+            className="h-10 w-10 md:h-12 md:w-12"
+            title="Return to tablet display"
+          >
+            <Tablet className="w-5 h-5 md:w-6 md:h-6" />
+          </Button>
+          
           <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
             <Select value={viewMode} onValueChange={setViewMode}>
               <SelectTrigger className="w-28 h-8 text-sm md:w-40 md:h-10 md:text-base">

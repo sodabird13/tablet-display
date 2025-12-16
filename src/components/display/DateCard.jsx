@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function DateCard() {
   const [date, setDate] = useState(new Date());
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,7 +33,8 @@ export default function DateCard() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.1 }}
-      className="glass-card p-6 text-center h-[140px] flex flex-col items-center justify-center"
+      className="glass-card p-6 text-center h-[140px] flex flex-col items-center justify-center cursor-pointer hover:bg-black/50 transition-colors"
+      onClick={() => navigate(createPageUrl('Calendar'))}
     >
       <div className="text-[2.5rem] font-light text-white mb-2">
         {format(date, 'EEEE')}

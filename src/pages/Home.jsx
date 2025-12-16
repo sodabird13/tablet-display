@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchSettings, saveSettings } from '@/api/dataClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils'; // Updated import for createPageUrl
 import TimeCard from '../components/display/TimeCard';
 import DateCard from '../components/display/DateCard';
 import WeatherCard from '../components/display/WeatherCard';
@@ -25,7 +23,6 @@ const BACKGROUND_OPTIONS = [
 export default function Home() {
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],
@@ -89,14 +86,6 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Hidden navigation button to full calendar view */}
-      {/* This button is fixed to the bottom-left corner and becomes visible on hover */}
-      <button
-        onClick={() => navigate(createPageUrl('Calendar'))}
-        className="fixed bottom-0 left-0 w-16 h-16 opacity-0 hover:opacity-10 bg-white/20 transition-opacity z-50"
-        aria-label="Go to calendar"
-      />
-
       {/* Background Image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
