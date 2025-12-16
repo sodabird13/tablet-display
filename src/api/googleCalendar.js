@@ -172,7 +172,7 @@ async function fetchWithServiceAccount(calendarId, timeMin, timeMax) {
     }
 
     const data = await response.json()
-    return (data.items || []).map(normalizeGoogleEvent)
+    return (data.items || []).flatMap(normalizeGoogleEvent)
   } catch (error) {
     console.error('Failed to fetch Google Calendar events:', error)
     return []
@@ -205,7 +205,7 @@ async function fetchWithApiKey(calendarId, apiKey, timeMin, timeMax) {
     }
 
     const data = await response.json()
-    return (data.items || []).map(normalizeGoogleEvent)
+    return (data.items || []).flatMap(normalizeGoogleEvent)
   } catch (error) {
     console.error('Failed to fetch Google Calendar events:', error)
     return []
@@ -214,44 +214,62 @@ async function fetchWithApiKey(calendarId, apiKey, timeMin, timeMax) {
 
 /**
  * Normalize a Google Calendar event to match our local event format
+ * Returns an array of events (multi-day all-day events are expanded into one event per day)
  */
 function normalizeGoogleEvent(googleEvent) {
   const isAllDay = Boolean(googleEvent.start?.date)
   
-  let specificDate
-  let startTime
-  let endTime
-
-  if (isAllDay) {
-    specificDate = googleEvent.start.date
-  } else {
-    const startDateTime = new Date(googleEvent.start.dateTime)
-    const endDateTime = new Date(googleEvent.end.dateTime)
-    
-    specificDate = formatDateLocal(startDateTime)
-    startTime = formatTimeLocal(startDateTime)
-    endTime = formatTimeLocal(endDateTime)
-  }
-
   const colorId = googleEvent.colorId || '1'
   const color = GOOGLE_COLOR_MAP[colorId] || 'blue'
-
-  return {
-    id: `gcal_${googleEvent.id}`,
+  
+  const baseEvent = {
     title: googleEvent.summary || '(No title)',
     description: googleEvent.description || '',
     color,
     is_all_day: isAllDay,
     is_recurring: false,
-    specific_date: specificDate,
-    start_time: startTime,
-    end_time: endTime,
     days_of_week: [],
     excluded_dates: [],
     source: 'google',
     google_event_id: googleEvent.id,
     google_html_link: googleEvent.htmlLink,
     location: googleEvent.location || null,
+  }
+
+  if (isAllDay) {
+    // For all-day events, check if it spans multiple days
+    const startDate = new Date(googleEvent.start.date + 'T00:00:00')
+    const endDate = new Date(googleEvent.end.date + 'T00:00:00') // End date is exclusive in Google Calendar
+    
+    const events = []
+    const currentDate = new Date(startDate)
+    
+    // Create an event for each day the event spans (end date is exclusive)
+    while (currentDate < endDate) {
+      const dateStr = formatDateLocal(currentDate)
+      events.push({
+        ...baseEvent,
+        id: `gcal_${googleEvent.id}_${dateStr}`,
+        specific_date: dateStr,
+        start_time: undefined,
+        end_time: undefined,
+      })
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    return events
+  } else {
+    // For timed events, return a single event
+    const startDateTime = new Date(googleEvent.start.dateTime)
+    const endDateTime = new Date(googleEvent.end.dateTime)
+    
+    return [{
+      ...baseEvent,
+      id: `gcal_${googleEvent.id}`,
+      specific_date: formatDateLocal(startDateTime),
+      start_time: formatTimeLocal(startDateTime),
+      end_time: formatTimeLocal(endDateTime),
+    }]
   }
 }
 
