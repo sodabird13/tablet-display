@@ -352,7 +352,34 @@ export default function Calendar() {
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
       <div className="max-w-[1600px] mx-auto">
         <div className="flex items-center justify-between mb-4 md:mb-6 gap-2 md:gap-4">
-          {/* Left - Icon buttons */}
+          {/* Left - Title and navigation */}
+          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+            <h1 className="text-xl md:text-3xl font-light text-gray-900 truncate">
+              {isMobile ? 'Calendar' : calendarTitle}
+            </h1>
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+              <Button variant="ghost" size="icon" onClick={handlePrevious} className="h-8 w-8 md:h-10 md:w-10">
+                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={handleNext} className="h-8 w-8 md:h-10 md:w-10">
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Center - View selector */}
+          <Select value={viewMode} onValueChange={setViewMode}>
+            <SelectTrigger className="w-28 h-8 text-sm md:w-40 md:h-10 md:text-base">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1day">1-Day View</SelectItem>
+              <SelectItem value="3day">3-Day View</SelectItem>
+              <SelectItem value="week">Week View</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Right - Icon buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <Button
               variant="ghost"
@@ -381,33 +408,6 @@ export default function Calendar() {
             >
               <SettingsIcon className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
-          </div>
-          
-          {/* Center - View selector */}
-          <Select value={viewMode} onValueChange={setViewMode}>
-            <SelectTrigger className="w-28 h-8 text-sm md:w-40 md:h-10 md:text-base">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1day">1-Day View</SelectItem>
-              <SelectItem value="3day">3-Day View</SelectItem>
-              <SelectItem value="week">Week View</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {/* Right - Title and navigation */}
-          <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1 justify-end">
-            <h1 className="text-xl md:text-3xl font-light text-gray-900 truncate">
-              {isMobile ? 'Calendar' : calendarTitle}
-            </h1>
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-              <Button variant="ghost" size="icon" onClick={handlePrevious} className="h-8 w-8 md:h-10 md:w-10">
-                <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleNext} className="h-8 w-8 md:h-10 md:w-10">
-                <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-            </div>
           </div>
         </div>
 
