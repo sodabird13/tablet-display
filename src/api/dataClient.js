@@ -8,7 +8,14 @@ import { addDays, startOfDay } from 'date-fns'
  */
 async function fetchGoogleCalendarFromServer() {
   try {
-    const response = await fetch('/api/google-calendar-events')
+    // Add cache-busting timestamp to prevent browser caching
+    const timestamp = Date.now()
+    const response = await fetch(`/api/google-calendar-events?_t=${timestamp}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    })
     if (!response.ok) {
       return []
     }
@@ -29,7 +36,7 @@ const cryptoRef = typeof globalThis !== 'undefined' ? globalThis.crypto : undefi
 // Cache for settings to avoid repeated fetches
 let settingsCache = null
 let settingsCacheTime = 0
-const SETTINGS_CACHE_TTL = 30000 // 30 seconds
+const SETTINGS_CACHE_TTL = 10000 // 10 seconds - shorter for fresher data
 
 const normalizeEvent = (event) => {
   if (!event) return event

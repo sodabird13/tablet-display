@@ -193,6 +193,13 @@ const GOOGLE_COLOR_MAP = {
 
 // API endpoint for Google Calendar events
 app.get('/api/google-calendar-events', async (req, res) => {
+  // Prevent browser caching of calendar data
+  res.set({
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  })
+  
   try {
     const calendarId = GOOGLE_CALENDAR_ID
     
@@ -210,9 +217,9 @@ app.get('/api/google-calendar-events', async (req, res) => {
     const timeMax = new Date(timeMin.getTime() + 30 * 24 * 60 * 60 * 1000)
 
     const events = await fetchGoogleCalendarEvents(calendarId, timeMin, timeMax)
-    console.log(`Fetched ${events.length} Google Calendar events`)
+    console.log(`[${new Date().toISOString()}] Fetched ${events.length} Google Calendar events`)
     
-    res.json({ events })
+    res.json({ events, fetchedAt: new Date().toISOString() })
   } catch (error) {
     console.error('Error fetching Google Calendar events:', error)
     res.status(500).json({ events: [], error: error.message })
@@ -232,7 +239,7 @@ app.get('/api/health', (req, res) => {
 app.use(express.static(path.join(__dirname, '..', 'dist')))
 
 // SPA fallback - serve index.html for all non-API routes
-app.get('*', (req, res) => {
+app.get('/{*path}', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
 })
 

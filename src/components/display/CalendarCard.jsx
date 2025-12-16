@@ -72,9 +72,10 @@ export default function CalendarCard() {
     queryKey: ['calendar-events'],
     queryFn: listCalendarEvents,
     initialData: [],
+    staleTime: 0, // Always consider data stale
     refetchInterval: 300000, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always'
   });
 
   // Create Event
@@ -277,7 +278,16 @@ export default function CalendarCard() {
     });
   };
 
-  const renderDay = (date, index) => {
+  // Calculate max all-day events across visible days for consistent layout
+  const getMaxAllDayEvents = () => {
+    return days.reduce((max, date) => {
+      const dayEvents = getEventsForDay(date);
+      const allDayCount = dayEvents.filter((e) => e.is_all_day).length;
+      return Math.max(max, allDayCount);
+    }, 0);
+  };
+
+  const renderDay = (date, index, maxAllDayEvents) => {
     const dayEvents = getEventsForDay(date);
     const allDayEvents = dayEvents.filter((e) => e.is_all_day);
     const timedEvents = dayEvents
@@ -290,6 +300,10 @@ export default function CalendarCard() {
 
     const isToday = format(date, 'yyyy-MM-dd') === format(calendarBaseDate, 'yyyy-MM-dd');
     const isFiveDayView = viewMode === 2;
+    
+    // Calculate dynamic height for all-day section based on max events across all days
+    // Each event is ~38px (p-2 + text + gap), plus mb-3.5 (14px)
+    const allDayHeight = maxAllDayEvents > 0 ? (maxAllDayEvents * 42) + 14 : 0;
 
     return (
       <div key={index} className="px-4 flex-1 min-w-0 border-r-2 border-white/30 last:border-r-0 flex flex-col">
@@ -306,24 +320,28 @@ export default function CalendarCard() {
           </div>
         </div>
 
-        <div className="space-y-2 mb-3.5 h-[54px] pr-2 flex flex-col justify-start">
-          {allDayEvents.map((event) => (
-            <div
-              key={event.id}
-              onClick={() => handleEventClick(event, date)}
-              className={`${COLOR_MAP[event.color] || 'bg-blue-400/80'} rounded-lg p-2 text-white cursor-pointer hover:scale-[1.02] transition-transform origin-center relative`}
-              title={event.source === 'google' ? 'Click to open in Google Calendar' : undefined}>
-              {event.source === 'google' && (
-                <div className="absolute top-1 right-1 w-4 h-4">
-                  <GoogleIcon className="w-full h-full" />
+        {maxAllDayEvents > 0 && (
+          <div 
+            className="space-y-2 mb-3.5 pr-2 flex flex-col justify-start"
+            style={{ minHeight: `${allDayHeight}px` }}>
+            {allDayEvents.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => handleEventClick(event, date)}
+                className={`${COLOR_MAP[event.color] || 'bg-blue-400/80'} rounded-lg p-2 text-white cursor-pointer hover:scale-[1.02] transition-transform origin-center relative`}
+                title={event.source === 'google' ? 'Click to open in Google Calendar' : undefined}>
+                {event.source === 'google' && (
+                  <div className="absolute top-1 right-1 w-4 h-4">
+                    <GoogleIcon className="w-full h-full" />
+                  </div>
+                )}
+                <div className={`font-medium break-words ${isFiveDayView ? 'text-xs' : 'text-sm'} ${event.source === 'google' ? 'pr-4' : ''}`}>
+                  {event.title}
                 </div>
-              )}
-              <div className={`font-medium break-words ${isFiveDayView ? 'text-xs' : 'text-sm'} ${event.source === 'google' ? 'pr-4' : ''}`}>
-                {event.title}
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="space-y-2 overflow-y-auto max-h-[390px] pr-2 flex-1">
           {timedEvents.map((event) => (
@@ -351,6 +369,7 @@ export default function CalendarCard() {
   };
 
   const days = Array.from({ length: daysToShow }, (_, i) => addDays(calendarBaseDate, i));
+  const maxAllDayEvents = getMaxAllDayEvents();
 
   return (
     <>
@@ -372,7 +391,7 @@ export default function CalendarCard() {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
             className="flex-1 flex gap-4 overflow-hidden">
-            {days.map((day, index) => renderDay(day, index))}
+            {days.map((day, index) => renderDay(day, index, maxAllDayEvents))}
           </motion.div>
         </AnimatePresence>
       </motion.div>

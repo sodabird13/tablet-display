@@ -83,9 +83,10 @@ export default function Calendar() {
     queryKey: ['calendar-events'],
     queryFn: listCalendarEvents,
     initialData: [],
+    staleTime: 0, // Always consider data stale
     refetchInterval: 300000, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always'
   });
 
   // Create Event
