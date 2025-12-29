@@ -25,8 +25,11 @@ const GoogleIcon = ({ className }) => (
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import EventEditModal from '../components/display/EventEditModal';
 import CalendarSettingsModal from '../components/calendar/CalendarSettingsModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
+// tablet-display-2 URL on the Pi
+const TABLET_DISPLAY_2_URL = 'http://192.168.1.84:3003';
 
 const COLOR_MAP = {
   red: 'bg-red-400',
@@ -43,8 +46,12 @@ const COLOR_MAP = {
 
 export default function Calendar() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState('week');
+  
+  // Check if user came from tablet-display-2
+  const fromTablet2 = searchParams.get('from') === 'tablet2';
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [current3DayStart, setCurrent3DayStart] = useState(startOfDay(new Date()));
   const [current1DayStart, setCurrent1DayStart] = useState(startOfDay(new Date()));
@@ -394,9 +401,15 @@ export default function Calendar() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(createPageUrl('Home'))}
+              onClick={() => {
+                if (fromTablet2) {
+                  window.location.href = TABLET_DISPLAY_2_URL;
+                } else {
+                  navigate(createPageUrl('Home'));
+                }
+              }}
               className="h-8 w-8 md:h-10 md:w-10"
-              title="Return to tablet display"
+              title={fromTablet2 ? "Return to desk display" : "Return to tablet display"}
             >
               <Tablet className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
